@@ -144,7 +144,7 @@
 
 <!-- SESSION -->
 <section id="session" class="screen">
-  <div class="topnav"><button class="back" onclick="quitSession()">← やめる</button><span id="sess-mode" style="color:var(--sub);font-size:13px"></span></div>
+  <div class="topnav"><button class="back" onclick="quitSession()">← やめる</button><button class="back" id="prev-btn" onclick="goBack()" style="display:none">↩ 前の問題</button><span id="sess-mode" style="color:var(--sub);font-size:13px"></span></div>
   <div class="qcount"><span id="q-i">1</span> / <span id="q-n">10</span></div>
   <div class="progline"><i id="q-prog" style="width:0%"></i></div>
   <div class="qcard">
@@ -772,7 +772,8 @@ function renderQ(){
   document.getElementById('q-ans').classList.remove('show');
   document.getElementById('reveal-btn').style.display='block';
   document.getElementById('grade').style.display='none';
-  document.getElementById('kbd-hint').textContent = isDesktop()?'スペース=答え／1=✕／2=○':'';
+  document.getElementById('kbd-hint').textContent = isDesktop()?'スペース=答え／1=✕／2=○／←=前へ':'';
+  document.getElementById('prev-btn').style.display = sess.i>0 ? 'inline-block':'none';
 }
 function reveal(){
   document.getElementById('q-ans').classList.add('show');
@@ -781,14 +782,30 @@ function reveal(){
 }
 function grade(ok){
   const id=sess.queue[sess.i];
+  const prev = state.cards[id] ? Object.assign({},state.cards[id]) : null; // 採点前の状態を保存（戻る用）
   let c=state.cards[id]||{box:0,due:today()};
   if(ok){ c.box=Math.min(c.box+1,6); c.due=today()+IV[c.box]; sess.ok++; }
   else  { c.box=1; c.due=today()+1; sess.ng++; }
   state.cards[id]=c;
+  sess.hist=sess.hist||[];
+  sess.hist[sess.i]={ok:ok, prev:prev};
   save();
   sess.i++;
   if(sess.i>=sess.queue.length){ finishSession(); }
   else renderQ();
+}
+function goBack(){
+  if(!sess || sess.i<=0) return;
+  sess.i--;
+  const id=sess.queue[sess.i];
+  const h=sess.hist&&sess.hist[sess.i];
+  if(h){ // 直前の採点を取り消す（二重カウント防止）
+    if(h.ok) sess.ok=Math.max(0,sess.ok-1); else sess.ng=Math.max(0,sess.ng-1);
+    if(h.prev) state.cards[id]=h.prev; else delete state.cards[id];
+    sess.hist[sess.i]=null;
+    save();
+  }
+  renderQ();
 }
 function finishSession(){
   const d=today();
@@ -888,6 +905,7 @@ document.addEventListener('keydown',e=>{
   if((e.key===' '||e.key==='Enter')&&!revealed){ e.preventDefault(); reveal(); }
   else if(revealed&&(e.key==='1')){ grade(false); }
   else if(revealed&&(e.key==='2')){ grade(true); }
+  else if(e.key==='ArrowLeft'){ goBack(); }
 });
 
 /* ============== init ============== */
