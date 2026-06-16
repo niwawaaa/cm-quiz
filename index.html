@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4a2c1a">
+<meta name="robots" content="noindex,nofollow">
+<title>☕ コーヒーマイスター 一問一答</title>
+<style>
+  :root{
+    --bg:#f6efe6; --card:#fffaf3; --ink:#2e221a; --sub:#7a6a5c;
+    --brown:#6f4322; --brown2:#8a5a33; --accent:#c08433;
+    --ok:#2f8f5b; --ng:#c0492f; --line:#e6d9c8; --shadow:0 6px 18px rgba(74,44,26,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#221a14; --card:#2e241c; --ink:#f1e7da; --sub:#b6a48f;
+      --brown:#c89a6a; --brown2:#d8b083; --accent:#e0a94e; --line:#42342a; --shadow:0 6px 18px rgba(0,0,0,.35); }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6;
+    max-width:560px; margin:0 auto; padding:0 16px 40px;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{position:sticky; top:0; background:linear-gradient(var(--bg) 70%, transparent); padding:14px 0 8px; z-index:10}
+  .brand{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .brand h1{font-size:18px; margin:0; color:var(--brown)}
+  .pills{display:flex; gap:6px; font-size:12px}
+  .pill{background:var(--card); border:1px solid var(--line); border-radius:999px; padding:3px 9px; color:var(--sub)}
+  .pill b{color:var(--accent)}
+  .screen{display:none; animation:fade .25s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+
+  .btn{display:block; width:100%; border:none; border-radius:14px; padding:16px; font-size:16px;
+    font-weight:700; cursor:pointer; box-shadow:var(--shadow); margin:10px 0}
+  .btn-primary{background:var(--brown); color:#fff}
+  .btn-sub{background:var(--card); color:var(--ink); border:1px solid var(--line); box-shadow:none; font-weight:600}
+  .btn:active{transform:scale(.99)}
+  .btn-row{display:flex; gap:10px}
+  .btn-row .btn{margin:6px 0}
+
+  .hero{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; box-shadow:var(--shadow); margin:12px 0}
+  .hero .big{font-size:13px; color:var(--sub)}
+  .hero .num{font-size:34px; font-weight:800; color:var(--brown)}
+  .meta{font-size:13px; color:var(--sub); margin-top:2px}
+
+  .sec-title{font-size:13px; color:var(--sub); margin:18px 4px 6px; font-weight:700; letter-spacing:.04em}
+  .barwrap{margin:9px 0}
+  .barlabel{display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px}
+  .barlabel span:last-child{color:var(--sub)}
+  .bar{height:9px; background:var(--line); border-radius:999px; overflow:hidden}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--brown2)); border-radius:999px; transition:width .4s}
+
+  /* session */
+  .qcount{font-size:13px; color:var(--sub); text-align:center; margin:8px 0}
+  .progline{height:5px; background:var(--line); border-radius:999px; overflow:hidden; margin-bottom:14px}
+  .progline > i{display:block; height:100%; background:var(--accent); transition:width .3s}
+  .qcard{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 18px; box-shadow:var(--shadow); min-height:160px; display:flex; flex-direction:column; justify-content:center}
+  .chchip{align-self:flex-start; font-size:11px; color:#fff; background:var(--brown2); border-radius:999px; padding:2px 10px; margin-bottom:12px}
+  .qtext{font-size:19px; font-weight:700; line-height:1.55}
+  .answer{margin-top:16px; padding-top:16px; border-top:1px dashed var(--line); display:none}
+  .answer.show{display:block; animation:fade .2s}
+  .answer .alabel{font-size:12px; color:var(--sub)}
+  .answer .atext{font-size:20px; font-weight:800; color:var(--brown); margin:4px 0 8px}
+  .answer .ex{font-size:14px; color:var(--sub)}
+  .grade{display:flex; gap:10px; margin-top:14px}
+  .grade .btn{margin:0}
+  .btn-ng{background:var(--ng); color:#fff}
+  .btn-ok{background:var(--ok); color:#fff}
+  .hint{text-align:center; font-size:12px; color:var(--sub); margin-top:10px}
+
+  /* result */
+  .result-emoji{font-size:48px; text-align:center; margin:10px}
+  .stat-row{display:flex; gap:10px; margin:14px 0}
+  .stat{flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; text-align:center}
+  .stat .n{font-size:26px; font-weight:800}
+  .stat .l{font-size:12px; color:var(--sub)}
+
+  /* chapter list */
+  .chrow{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 14px; margin:8px 0; cursor:pointer}
+  .chrow:active{transform:scale(.99)}
+  .chrow .cn{width:30px; height:30px; flex:none; background:var(--brown); color:#fff; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px}
+  .chrow .ct{flex:1}
+  .chrow .ct .t{font-weight:700; font-size:15px}
+  .chrow .ct .s{font-size:12px; color:var(--sub)}
+  .chrow .cg{font-size:12px; color:var(--sub); text-align:right}
+
+  /* settings */
+  .field{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin:10px 0}
+  .field label{font-weight:700; font-size:14px; display:block; margin-bottom:8px}
+  .stepper{display:flex; align-items:center; gap:14px}
+  .stepper button{width:42px; height:42px; border-radius:11px; border:1px solid var(--line); background:var(--bg); font-size:22px; font-weight:700; color:var(--brown)}
+  .stepper .val{font-size:22px; font-weight:800; min-width:46px; text-align:center}
+  .danger{color:var(--ng); font-weight:700; font-size:14px; background:none; border:none; padding:8px 0; cursor:pointer}
+  .topnav{display:flex; align-items:center; gap:10px; margin:6px 0 4px}
+  .back{background:none; border:none; color:var(--brown); font-size:15px; font-weight:700; cursor:pointer; padding:6px 0}
+  .empty{text-align:center; color:var(--sub); padding:30px 10px}
+  footer{text-align:center; color:var(--sub); font-size:11px; margin-top:26px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>☕ コーヒーマイスター</h1>
+    <div class="pills">
+      <span class="pill">🔥 連続 <b id="p-streak">0</b>日</span>
+      <span class="pill">今日 <b id="p-today">0</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- HOME -->
+<section id="home" class="screen active">
+  <div class="hero">
+    <div class="big">本日の演習</div>
+    <div class="num"><span id="due-count">0</span> <span style="font-size:16px;color:var(--sub)">問</span></div>
+    <div class="meta" id="due-meta">復習 0 ・ 新規 0</div>
+  </div>
+  <button class="btn btn-primary" onclick="startDaily()">▶ 今日の演習を始める</button>
+  <div class="btn-row">
+    <button class="btn btn-sub" onclick="show('chapters')">📚 章別演習</button>
+    <button class="btn btn-sub" onclick="startWeak()">🩹 弱点だけ復習</button>
+  </div>
+
+  <div class="sec-title">学習の進捗</div>
+  <div class="hero" style="margin-top:6px">
+    <div class="barlabel"><span><b id="mastered-n">0</b> / <span id="total-n">0</span> 問 マスター</span><span id="mastered-pct">0%</span></div>
+    <div class="bar"><i id="mastered-bar" style="width:0%"></i></div>
+  </div>
+  <div id="chapter-bars"></div>
+
+  <button class="btn btn-sub" style="margin-top:18px" onclick="show('settings')">⚙️ 設定</button>
+  <footer id="foot"></footer>
+</section>
+
+<!-- SESSION -->
+<section id="session" class="screen">
+  <div class="topnav"><button class="back" onclick="quitSession()">← やめる</button><span id="sess-mode" style="color:var(--sub);font-size:13px"></span></div>
+  <div class="qcount"><span id="q-i">1</span> / <span id="q-n">10</span></div>
+  <div class="progline"><i id="q-prog" style="width:0%"></i></div>
+  <div class="qcard">
+    <span class="chchip" id="q-ch">第1章</span>
+    <div class="qtext" id="q-text">―</div>
+    <div class="answer" id="q-ans">
+      <div class="alabel">こたえ</div>
+      <div class="atext" id="q-a">―</div>
+      <div class="ex" id="q-ex"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="reveal-btn" onclick="reveal()">答えを見る</button>
+  <div class="grade" id="grade" style="display:none">
+    <button class="btn btn-ng" onclick="grade(false)">✕ まだ</button>
+    <button class="btn btn-ok" onclick="grade(true)">○ 覚えた</button>
+  </div>
+  <div class="hint" id="kbd-hint"></div>
+</section>
+
+<!-- RESULT -->
+<section id="result" class="screen">
+  <div class="result-emoji" id="r-emoji">🎉</div>
+  <div style="text-align:center;font-size:18px;font-weight:800" id="r-title">おつかれさまでした</div>
+  <div class="stat-row">
+    <div class="stat"><div class="n" id="r-total">0</div><div class="l">演習</div></div>
+    <div class="stat"><div class="n" style="color:var(--ok)" id="r-ok">0</div><div class="l">○ 覚えた</div></div>
+    <div class="stat"><div class="n" style="color:var(--ng)" id="r-ng">0</div><div class="l">✕ まだ</div></div>
+  </div>
+  <div class="meta" id="r-msg" style="text-align:center;margin:10px"></div>
+  <button class="btn btn-primary" onclick="show('home');refreshHome()">ホームへ戻る</button>
+  <button class="btn btn-sub" id="r-again" onclick="startDaily()" style="display:none">続けてもう一度</button>
+</section>
+
+<!-- CHAPTERS -->
+<section id="chapters" class="screen">
+  <div class="topnav"><button class="back" onclick="show('home')">← ホーム</button></div>
+  <div class="sec-title">章を選んで演習</div>
+  <div id="ch-list"></div>
+</section>
+
+<!-- SETTINGS -->
+<section id="settings" class="screen">
+  <div class="topnav"><button class="back" onclick="show('home');refreshHome()">← ホーム</button></div>
+  <div class="sec-title">設定</div>
+  <div class="field">
+    <label>1日の出題数</label>
+    <div class="stepper">
+      <button onclick="changeLimit(-5)">−</button>
+      <div class="val" id="limit-val">10</div>
+      <button onclick="changeLimit(5)">＋</button>
+      <span style="color:var(--sub);font-size:13px">問</span>
+    </div>
+  </div>
+  <div class="field">
+    <label>データ</label>
+    <div style="font-size:13px;color:var(--sub);margin-bottom:6px">進捗はこの端末のブラウザに保存されます。</div>
+    <button class="danger" onclick="resetAll()">⚠️ 進捗をすべてリセット</button>
+  </div>
+  <div class="field">
+    <label>収録状況</label>
+    <div id="bank-info" style="font-size:13px;color:var(--sub)"></div>
+  </div>
+</section>
+
+<script>
+/* ============== 問題バンク ==============
+   ch: 章番号, q: 問題, a: 答え, ex: 補足(任意)
+   ※第1・2章の初版。第3〜7章は順次追加予定。 */
+const CH_NAMES = {
+  1:"コーヒーマイスター", 2:"コーヒーとカフェの歴史", 3:"コーヒーの生豆",
+  4:"コーヒーの産業・経済", 5:"コーヒーの産地", 6:"コーヒーの抽出技術と食器", 7:"コーヒーの科学と健康"
+};
+const QUESTIONS = [
+  // ---------- 第1章 ----------
+  {ch:1,q:"コーヒーマイスターとは、ひとことで言えば何のプロフェッショナルか？",a:"コーヒーの飲用者（消費者）に、おいしさや楽しさを伝えるプロ",ex:"消費者（コーヒーを飲む人）の一番近くに存在するコーヒーマン。"},
+  {ch:1,q:"コーヒーマイスター認定制度が確立された年と、確立した団体は？",a:"1999年、日本スペシャリティーコーヒー協会（現SCAJの前身）"},
+  {ch:1,q:"「SCAJ」の正式名称を日本語と英語で？",a:"日本スペシャルティコーヒー協会／Specialty Coffee Association of Japan"},
+  {ch:1,q:"SCAJは何年に、どんな法人形態でスタートし、現在は何法人か？",a:"2003年に有限責任中間法人としてスタート、2009年より一般社団法人"},
+  {ch:1,q:"日本のコーヒー市場の大きな三つの分野は？",a:"工業用・業務用・家庭用"},
+  {ch:1,q:"缶コーヒー用の原料は、三分野のうちどれに属するか？",a:"工業用"},
+  {ch:1,q:"ホテルなどで使われるレギュラーコーヒーは、三分野のうちどれか？",a:"業務用"},
+  {ch:1,q:"SCAJのスペシャルティコーヒーの定義における「消費者」とは？",a:"コーヒーを飲む人"},
+  {ch:1,q:"スペシャルティコーヒーの定義を一言で言うと？",a:"消費者が美味しいと評価して満足するコーヒー",ex:"風味の素晴らしさ＝カップ・クォリティで判定する。"},
+  {ch:1,q:"「コーヒーの栽培からカップに至るまでの長い道のり」を表す英語の言葉は？",a:"フロム・シード・トゥ・カップ（From seed to cup）"},
+  {ch:1,q:"風味の素晴らしさの三本柱「持続するコーヒー感」「際立つ印象的な風味特性」とあと一つは？",a:"素晴らしい酸味特性（酸味）"},
+  {ch:1,q:"一般（メインストリーム）コーヒーの品質判定は、主に何チェックを対象とするか？",a:"欠点チェック"},
+  {ch:1,q:"SCAJのカッピングフォームは何点満点か？",a:"100点満点"},
+  {ch:1,q:"SCAJカッピングの評価項目はいくつあり、各項目は何点満点か？",a:"8項目・各8点"},
+  {ch:1,q:"カッピングで「明るさ・爽やかさ（酸の質）」を評価する項目は？",a:"酸味（酸味の特徴評価）",ex:"酸度の強さではなく“酸の質”を評価する。"},
+  {ch:1,q:"カッピングで「粘り気・密度・濃さ・舌触り」を評価する項目は？",a:"口に含んだ質感"},
+  {ch:1,q:"カッピングで「飲み込んだ後に持続する風味」を評価する項目は？",a:"後味の印象度"},
+  {ch:1,q:"スペシャルティコーヒーで重要視される、生産国から消費国に至る2つの観念は？",a:"サステイナビリティ（持続可能性）とトレーサビリティ（追跡可能性）"},
+  // ---------- 第2章 ----------
+  {ch:2,q:"15世紀半ば、歴史の舞台にコーヒーが登場した、インド洋に面した都市は？",a:"アデン"},
+  {ch:2,q:"コーヒーの商業的栽培を最初に始めた地域が属する国は？",a:"イエメン"},
+  {ch:2,q:"紅海に面した、当時のコーヒー輸出港は？",a:"モカ"},
+  {ch:2,q:"コーヒーノキの原産地とされる国は？",a:"エチオピア"},
+  {ch:2,q:"1517年マムルーク朝を滅ぼし、カイロからコンスタンティノープルにコーヒーを持ち帰ったオスマン・トルコのスルタンは？",a:"セリム1世"},
+  {ch:2,q:"1554年にコンスタンティノープルに伝わったカフェを、トルコで何と呼ぶか？",a:"カフェ・ハネ"},
+  {ch:2,q:"イスラム圏でコーヒーへの迫害・論争が起きた、3つの主な論点は？",a:"宗教的問題・政治（社会的）問題・健康問題"},
+  {ch:2,q:"『コーヒーの合法性の擁護』の著者は？",a:"ジャズィーリー（またはアブダル・カディール）"},
+  {ch:2,q:"ヨーロッパで最初にコーヒーに関する本を著述した学者は？",a:"ラウヴォルフ"},
+  {ch:2,q:"ヨーロッパで最も早くコーヒー貿易を手がけた国は？",a:"オランダ"},
+  {ch:2,q:"1715年にフランスがコーヒー移植に成功したレユニオン島の、当時の旧名は？",a:"ブルボン島"},
+  {ch:2,q:"オランダがアムステルダム植物園のコーヒーの苗木を献呈したフランス国王は？",a:"ルイ14世"},
+  {ch:2,q:"1723年、苦難の末に西インド諸島へコーヒーの苗木をもたらした人物は？",a:"（ガブリエル・）ド・クリュー"},
+  {ch:2,q:"ド・クリューが最初にコーヒーを移植した島は？",a:"マルチニーク島"},
+  {ch:2,q:"18世紀後半に世界最大のコーヒー生産地となったフランス植民地は？",a:"ハイチ"},
+  {ch:2,q:"ブラジルのパラに初めてコーヒーを移植した年と人物は？",a:"1727年、パリェタ"},
+  {ch:2,q:"ヨーロッパで最も早くカフェが社会に定着した国と、その中心都市は？",a:"イギリス、ロンドン"},
+  {ch:2,q:"現存する大保険組合（ロイズ）発祥となったカフェは？",a:"ロイズ・コーヒーハウス"},
+  {ch:2,q:"1686年開業、以降のパリのカフェの原型といわれるカフェは？",a:"カフェ・プロコプ"},
+  {ch:2,q:"フランス革命の端緒、バスティーユ牢獄襲撃の出発点となったカフェは？",a:"カフェ・ド・フォワ"},
+  {ch:2,q:"1720年ヴェネツィアに開業した、現存するイタリア最古のカフェは？",a:"カフェ・フローリアン"},
+  {ch:2,q:"1760年開業、多くの芸術家が訪れたローマのカフェは？",a:"カフェ・グレコ"},
+  {ch:2,q:"1683年ウィーン攻囲で英雄となり、褒賞の生豆でカフェを始めたとされる人物は？",a:"コルシツキー"},
+  {ch:2,q:"プロイセンのフリードリヒ大王のコーヒー禁止令により広まった、コーヒーの代用品は？",a:"チコリ"},
+  {ch:2,q:"コーヒーがアメリカの国民飲料になるきっかけとなった、1773年の事件は？",a:"ボストン茶会事件"},
+  {ch:2,q:"1888年、リオデジャネイロのコーヒー生産に壊滅的打撃を与えた法令は？",a:"奴隷制廃止令"},
+  {ch:2,q:"1800年頃フランスで開発された、発明者の名にちなむ抽出器具は？",a:"ド・ベロワのコーヒー（ドリップ）・ポット"},
+  {ch:2,q:"1901年にエスプレッソ・マシンを開発した人物は？",a:"ベッツェラ（ベゼラ）"},
+  {ch:2,q:"1888年、上野・黒門町に開業した日本の喫茶店の先駆けの店名は？",a:"可否茶館"},
+  {ch:2,q:"1911年、サンパウロ州政府の援助を得て銀座に開業した、後の喫茶店の原型となった店は？",a:"カフェ・パウリスタ"},
+  {ch:2,q:"1970年代、コーヒーに商品を特化して全国に広まった喫茶店の業態を何と呼ぶか？",a:"コーヒー専門店"},
+  // ---------- 第3章 ----------
+  {ch:3,q:"一般に「コーヒー豆」と呼ばれるのは、コーヒーの実のどの部分か？",a:"種子（生豆）",ex:"コーヒーチェリーの中の種子が生豆。"},
+  {ch:3,q:"コーヒーは世界の約何カ国で生産・輸出されているか？",a:"約60カ国"},
+  {ch:3,q:"コーヒーノキの花の色は？",a:"白色",ex:"ジャスミンのような香りの白い花。寿命は2〜3日。"},
+  {ch:3,q:"コーヒー生豆を覆っている銀皮を何というか？",a:"シルバースキン"},
+  {ch:3,q:"ガム状の果肉の内側にある、硬い内果皮を何というか？",a:"パーチメント"},
+  {ch:3,q:"コーヒーの実が、色と形から呼ばれる名前は？",a:"コーヒーチェリー",ex:"サクランボに似ていることから。"},
+  {ch:3,q:"コーヒーノキは何科・何属に属するか？",a:"アカネ科コフィア属"},
+  {ch:3,q:"1つのチェリーに豆が1粒だけ入った丸豆を何というか？",a:"ピーベリー",ex:"全体の約10%しか採れず希少。"},
+  {ch:3,q:"チェリーに通常2つ向かい合って入っている、平らな面を持つ豆を何というか？",a:"フラットビーン（平豆）",ex:"全体の約9割。"},
+  {ch:3,q:"コーヒーノキの代表的な病気は？",a:"サビ病"},
+  {ch:3,q:"アラビカ種の原産国と、世界総生産量に占める割合は？",a:"エチオピア、約60%"},
+  {ch:3,q:"カネフォラ種（ロブスタ）の原産国と、世界総生産量に占める割合は？",a:"コンゴ、約40%"},
+  {ch:3,q:"アラビカ種とカネフォラ種を交配した品種は、主に何を目的に作られたか？",a:"病虫害に強くするため"},
+  {ch:3,q:"アラビカ種の栽培に望ましい年間平均気温は？",a:"15〜24℃",ex:"カネフォラ種は24〜30℃で低地栽培も可能。"},
+  {ch:3,q:"コーヒー栽培に望ましい年間降水量は？",a:"約1,200〜3,000mm"},
+  {ch:3,q:"コーヒー栽培にとって絶対に禁物な自然現象は？",a:"霜"},
+  {ch:3,q:"赤道をはさむ南北緯約25度の、コーヒー生産が集中する地帯を何と呼ぶか？",a:"コーヒーベルト"},
+  {ch:3,q:"生豆の主な生産処理方式を2つ挙げよ。",a:"非水洗処理方式（ナチュラル）／水洗処理方式（ウォッシュド）",ex:"中間のパルプド・ナチュラル等もある。"},
+  {ch:3,q:"水洗処理で、粘液質の付着したパーチメントを醗酵槽に漬ける目的は？",a:"粘液質を醗酵させて除去するため",ex:"高品質豆では酸味が洗練され風味が発達する。"},
+  {ch:3,q:"「パルプド・ナチュラル」とは、どのような処理工程か？",a:"パルパー後、粘液質が付着したままのパーチメントを乾燥処理する"},
+  {ch:3,q:"多くの生産国が生豆の輸送に麻袋を使う理由は？",a:"通気性・保存性・耐久性が良いから"},
+  {ch:3,q:"収穫後数か月程度の、味や香りの個性が顕著な新しい生豆を何というか？",a:"ニュー・クロップ"},
+  {ch:3,q:"当年もののコーヒー生豆を何というか？",a:"カレント・クロップ"},
+  {ch:3,q:"ブラジルの世界一のコーヒー積み出し港で、「No.2」にも名を残す港は？",a:"サントス港"},
+  {ch:3,q:"スクリーンサイズで生豆を分類する代表的な生産国を1つ挙げよ。",a:"ブラジル（コロンビア・タンザニアなども）"},
+  {ch:3,q:"ブラジル「No.2/19」のスクリーン19とは、ふるいの目が何インチか？",a:"64分の19インチ",ex:"数字が大きいほど大粒で高価格。"},
+  {ch:3,q:"コロンビアの「エクセルソ スプレモ」は、スクリーンサイズいくつ相当以上か？",a:"17相当以上",ex:"UGQは14〜16相当。"},
+  {ch:3,q:"タンザニアのアラビカ豆の、最高サイズ等級の表示は？",a:"AA",ex:"大きい順にAA・A・B・C。"},
+  {ch:3,q:"中米の標高等級「SHB」「SHG」は何の略か？",a:"SHB＝ストリクトリー・ハード・ビーン／SHG＝ストリクトリー・ハイ・グロウン",ex:"高地産＝深煎りに耐え良質な酸味＝高品質。"},
+  {ch:3,q:"欠点豆の種類を3つ以上挙げよ。",a:"発酵豆・黒豆・カビ豆・未熟豆・虫食い豆・割れ豆/貝殻豆 など"},
+  {ch:3,q:"欠点豆を人手で取り除く選別工程を何というか？",a:"ハンドピック"},
+  // ---------- 第4章 ----------
+  {ch:4,q:"コーヒーの種をまいてから発芽までの期間は？",a:"40〜50日"},
+  {ch:4,q:"苗木が農園に定植されるのは、種まきから何後か？",a:"5カ月〜1年後（雨期）"},
+  {ch:4,q:"コーヒーノキは順調に育つと、何年で花をつけるか？",a:"2〜3年"},
+  {ch:4,q:"アラビカ種の受粉方法は？（カネフォラ種との違いも）",a:"自家受粉（カネフォラ種は他家受粉）"},
+  {ch:4,q:"アラビカ種の実が成熟するのにかかる期間は？",a:"6〜8カ月",ex:"カネフォラ種は9〜11カ月とより長い。"},
+  {ch:4,q:"コーヒーの収穫量が多い年と少ない年が交互に来る現象を何と呼ぶか？",a:"表年・裏年（隔年結果）"},
+  {ch:4,q:"大農園でコーヒーの木を約4m間隔で植える理由は？",a:"トラクターなどの作業機（収穫機）が入れるようにするため"},
+  {ch:4,q:"手摘み収穫の良い点と悪い点は？",a:"良い点＝未熟豆の混入を減らせる／悪い点＝コスト高になりやすい"},
+  {ch:4,q:"日陰を作るために植える高木（バナナやマメ科）を何というか？",a:"シェードツリー（日陰樹）"},
+  {ch:4,q:"コーヒー栽培の肥料で特に重要な3成分は？",a:"窒素・リン酸・カリウム"},
+  {ch:4,q:"肥料3成分それぞれの働きは？",a:"窒素＝樹勢増進／リン酸＝根系の生長／カリウム＝実の生長"},
+  {ch:4,q:"収穫量が減った木の幹を切り、新芽を出させて再生する技術を何というか？",a:"カットバック"},
+  {ch:4,q:"コロンビアでコーヒー業務全般を管理する組織は？",a:"コロンビア国立コーヒー生産者連合会（FNC）"},
+  {ch:4,q:"コロンビアの輸出業者がコーヒーを買い付ける、特徴的な状態は？",a:"パーチメントコーヒーの状態"},
+  {ch:4,q:"ジャマイカで品質検査・輸出を一手に担う政府機関は？",a:"コーヒー産業公社（CIB）"},
+  {ch:4,q:"CIBの品質検査の項目は？",a:"カップ（味覚）・豆のサイズ・色・欠点豆の混入率"},
+  {ch:4,q:"エチオピアで品質・輸出管理を行う政府機関は？",a:"エチオピア農産物取引所（ECX）"},
+  {ch:4,q:"ケニアでコーヒー業務全般を運営する政府機関は？",a:"コーヒー・ボード・オブ・ケニア（CBK）"},
+  {ch:4,q:"ロンドンに本部を置き、国際コーヒー協定の運営を管理する組織は？",a:"国際コーヒー機関（ICO）"},
+  {ch:4,q:"国際コーヒー協定（ICA）が最初に結ばれた年と場所は？",a:"1962年、ニューヨーク（国連本部）"},
+  {ch:4,q:"コーヒー先物の2大取引所と、それぞれが扱う種類は？",a:"ニューヨーク取引所（ICE）＝アラビカ／ロンドン取引所（LIFFE）＝ロブスタ"},
+  {ch:4,q:"ICOの取引分類「コロンビアマイルド」に含まれる生産国は？",a:"コロンビア・ケニア・タンザニア"},
+  {ch:4,q:"「スペシャルティコーヒー」という表現を初めて使った人物と、その年・場所は？",a:"エルナ・クヌッセン女史、1978年フランスのコーヒー国際会議"},
+  {ch:4,q:"生産国で最も早くスペシャルティコーヒー協会を設立した国と、その組織は？",a:"ブラジル（BSCA、1991年）"},
+  {ch:4,q:"サステイナビリティに配慮して生産・流通するコーヒーを総称して何というか？",a:"サステイナブルコーヒー"},
+  {ch:4,q:"コーヒー生産現場が抱える大きな3つの問題は？",a:"経済問題・社会問題・環境問題"},
+  {ch:4,q:"2008年に日本へのエチオピア産生豆の輸入が激減した理由は？",a:"基準値を超える残留農薬問題"},
+  {ch:4,q:"第三者（NGO等）が独自基準でチェックし「お墨付き」を与えたコーヒーを何というか？",a:"認証コーヒー"},
+  {ch:4,q:"渡り鳥保護を中心に、木陰栽培（被覆4割以上等）を基準とする認証団体は？",a:"スミソニアン渡り鳥センター（バードフレンドリー）"},
+  {ch:4,q:"森林の持続的保護を主目的とし、2018年にUTZと合併した認証団体は？",a:"レインフォレスト・アライアンス"},
+  {ch:4,q:"ITCの「グルメコーヒー・プロジェクト」から生まれた、最高品質コーヒーに与えられる称号は？",a:"カップ・オブ・エクセレンス（COE）"},
+  {ch:4,q:"有機JASマークを貼ることができる事業者とは？",a:"有機食品のJAS規格に適合した生産を行い、登録機関の検査で認定された事業者"},
+  // ---------- 第5章 ----------
+  {ch:5,q:"ブラジルの肥沃な土壌「テーラ・ロッシャ」の意味は？",a:"赤紫の土（大地）"},
+  {ch:5,q:"ブラジルでカネフォラ種（コニロン）が栽培される、中部海岸寄りの州は？",a:"エスピリト・サント州"},
+  {ch:5,q:"ブラジルの集約的な大農園を何と呼ぶか？",a:"ファゼンダ"},
+  {ch:5,q:"世界第1位の生産国ブラジルの生産高動向が、大きな影響を与えるものは？",a:"コーヒーの国際相場"},
+  {ch:5,q:"コロンビアの農園で作業の機械化が困難な、大きな理由は？",a:"農園のほとんどが山の急斜面にあるため"},
+  {ch:5,q:"コロンビアのコーヒー生産量は世界第何位か？",a:"第3位（ブラジル・ベトナムに次ぐ）"},
+  {ch:5,q:"メキシコの標高による最高等級の略号と基準は？",a:"SHG（ストリクトリー・ハイ・グロウン、標高1,700m以上）"},
+  {ch:5,q:"メキシコでハイ・グロウンをスペイン語で何と呼ぶか（略号）？",a:"アルツーララバド（AL）"},
+  {ch:5,q:"メキシコ産コーヒーの大多数の輸出先は？",a:"アメリカ合衆国"},
+  {ch:5,q:"メキシコ・ベラクルス州産の代表的コーヒーを挙げよ。",a:"ハラパ・オリサバ・コアテペックなど"},
+  {ch:5,q:"1750年にグアテマラにコーヒーの苗木を持ち込んだのは誰か？",a:"イエズス会修道士"},
+  {ch:5,q:"グアテマラのコーヒーの等級は、何を基準に何段階に分類されるか？",a:"標高により7等級"},
+  {ch:5,q:"グアテマラの最高等級の略号は？",a:"SHB（ストリクトリー・ハード・ビーン）"},
+  {ch:5,q:"エルサルバドルで1956年に設立された、技術指導・産業振興を行う機関は？",a:"国立（農政省）コーヒー研究所"},
+  {ch:5,q:"エルサルバドルで注目される、大粒で特徴的な風味の品種は？",a:"パカマラ"},
+  {ch:5,q:"パナマで19世紀後半にコーヒー栽培が始まった代表的な産地は？",a:"ボケテ地区"},
+  {ch:5,q:"パナマ最高峰、バル火山の標高は？",a:"3,475m"},
+  {ch:5,q:"2004年のベストオブパナマで登場し、大きな話題となった品種は？",a:"ゲイシャ"},
+  {ch:5,q:"ジャマイカのブルーマウンテン山脈の最高峰の標高は？",a:"2,256m"},
+  {ch:5,q:"1727年のハリケーンを機にコーヒー栽培へ転換したジャマイカで、現在品質管理を行う機関は？",a:"CIB（コーヒー産業公社）"},
+  {ch:5,q:"ジャマイカの輸出用4種のコーヒー銘柄は？",a:"ブルーマウンテン／ハイマウンテン・スプリーム／ジャマイカ・プライム／ジャマイカ・セレクト"},
+  {ch:5,q:"ブルーマウンテンの等級分類は？",a:"No.1・No.2・No.3・ピーベリー・トリアージュ"},
+  {ch:5,q:"ジャマイカ産コーヒーの約85%が輸出される、最大の輸出先は？",a:"日本"},
+  {ch:5,q:"ハワイ・コナ地区がある島と、栽培される2つの山は？",a:"ハワイ島／マウナロア山・フアラライ山"},
+  {ch:5,q:"ハワイ・コナの等級を上から並べると？",a:"コナ・エクストラ・ファンシー ＞ コナ・ファンシー ＞ コナNo.1"},
+  {ch:5,q:"1877年にサビ病でアラビカ種が全滅し、ロブスタ中心となった国は？",a:"インドネシア"},
+  {ch:5,q:"スマトラ島で行われる、生豆の状態で乾燥させる独特の生産処理方式は？",a:"スマトラ式"},
+  {ch:5,q:"スマトラ島の代表的なコーヒー銘柄は？",a:"マンデリン"},
+  {ch:5,q:"アラビカ種では中国に次ぐ2位、全体ではベトナム・インドネシアに次ぐ3位の生産国は？",a:"インド"},
+  {ch:5,q:"世界最大のカネフォラ種（ロブスタ）生産国は？",a:"ベトナム"},
+  {ch:5,q:"ベトナムでコーヒー栽培を推進した、1988年発令の政策は？",a:"ドイモイ政策"},
+  {ch:5,q:"コーヒーの語源「カッファ地方」があり、アラビカ種原産の国は？",a:"エチオピア"},
+  {ch:5,q:"エチオピア最大の、標高2,000〜3,000mの高原は？",a:"アビシニア高原"},
+  {ch:5,q:"イルガチェフ・シダモ・レケンプティ・マタリのうち、エチオピア産でないものは？",a:"マタリ（イエメン産）"},
+  {ch:5,q:"ICOでケニア・タンザニアのコーヒーは何に分類されるか？",a:"コロンビア・マイルド"},
+  {ch:5,q:"タンザニアでカネフォラ種（ロブスタ）が生産される地域は？",a:"ブコバ地区"},
+  {ch:5,q:"ケニアの主要な収穫期（大きい方）を何というか？",a:"メインクロップ（9〜12月）"},
+  // ---------- 第6章 ----------
+  {ch:6,q:"おいしいコーヒーをいれる「抽出の基本」6つを挙げよ。",a:"①新鮮な焙煎豆②器具に合った挽き方③適正な粉の分量④新鮮な水⑤清潔な器具⑥適切な抽出温度と時間"},
+  {ch:6,q:"グラインド（粉砕）時に摩擦熱が加わると、何が損なわれるか？",a:"香りの成分"},
+  {ch:6,q:"挽いた粉に微粉が多いと、コーヒーにどんな影響が出るか？",a:"濁り・雑味が出て味を悪くする"},
+  {ch:6,q:"ペーパードリップ向けの標準的な挽き方は？",a:"中挽き〜中細挽き"},
+  {ch:6,q:"エスプレッソに適した挽き方は？",a:"極細挽き",ex:"短時間で一気に抽出するため表面積を多くする。"},
+  {ch:6,q:"同じ抽出方法のとき、細挽きと粗挽きで苦味はどう変わるか？",a:"細挽きは苦味が強く、粗挽きは弱くなる"},
+  {ch:6,q:"水の硬度は、何の量で決まるか？",a:"カルシウムイオンとマグネシウムイオンの量"},
+  {ch:6,q:"WHOの基準で「硬水」は硬度いくつ以上か？",a:"120mg以上",ex:"60mg未満が軟水。"},
+  {ch:6,q:"コーヒーに使う水で、含有量が少ない方が良いとされる成分は？",a:"鉄やマンガン",ex:"特に鉄分はタンニンと結合して風味を損なう。"},
+  {ch:6,q:"鉄分が多い水・ミネラル分が多い水は、コーヒーに適しているといえるか？",a:"言えない"},
+  {ch:6,q:"ホットコーヒーの、一般的においしいとされる飲み始め温度は？",a:"65〜70℃"},
+  {ch:6,q:"アイスコーヒーの飲み始め温度（標準）は？",a:"4〜6℃"},
+  {ch:6,q:"ドリップで「蒸らし」をするのはなぜか？",a:"粉を膨らませ、より効果的に成分を抽出するため"},
+  {ch:6,q:"焙煎豆が新鮮かどうかは、ドリップのどこで判別できるか？",a:"蒸らし後にコーヒー全体がよく膨らむか"},
+  {ch:6,q:"一般的な方法で、焙煎豆10g中に抽出される成分量は約何gか？",a:"約2g"},
+  {ch:6,q:"ペーパードリッパー内側の「リブ」の役割は？",a:"ドリッパーとペーパーの間に空気の道を作る"},
+  {ch:6,q:"リブがなければどうなるか？",a:"押し出された空気が粉の表面に逆流噴射し、十分な蒸らし効果が得られない"},
+  {ch:6,q:"1穴式（メリタ式）の注湯方法の特徴は？",a:"蒸らし後、1回で注湯を終了する"},
+  {ch:6,q:"3穴式（カリタ式）の注湯方法の特徴は？",a:"蒸らし後、数回に分けて注湯する"},
+  {ch:6,q:"新しいネルフィルターの、使用前の処理は？",a:"10〜15分程度、コーヒーの粉を入れた湯で煮る"},
+  {ch:6,q:"使用後のネルフィルターの保存方法は？",a:"丁寧に水洗いし、水に浸して冷蔵保存する"},
+  {ch:6,q:"サイフォンでロートを差し込むタイミングは？",a:"湯が完全に沸騰し、火から離して沸騰がおさまってから"},
+  {ch:6,q:"パーコレーター向けの挽き方は？",a:"粗挽き"},
+  {ch:6,q:"エスプレッソとはどんなコーヒーか？",a:"細挽きの粉に圧力をかけ、20〜30秒で約30cc（1oz）を抽出した濃厚なコーヒー"},
+  {ch:6,q:"エスプレッソの語源は？",a:"イタリア語の「エクスプレス（急行）」"},
+  {ch:6,q:"エスプレッソやコーヒーを抽出・提供する専門家を何というか？",a:"バリスタ"},
+  {ch:6,q:"エスプレッソの上部を覆う、きめ細かい泡を何というか？",a:"クレマ"},
+  {ch:6,q:"コーヒーのガス置換包装に使う不活性ガスは？",a:"窒素ガスまたは二酸化炭素"},
+  {ch:6,q:"コーヒーを冷蔵庫で保管する際の注意は？",a:"匂いの強い食品の近くや、密閉されていない容器での保存を避ける"},
+  {ch:6,q:"コーヒーカップの原型とされるのは、どこの国（地域）のものか？",a:"中国など東洋（の茶のカップ）"},
+  {ch:6,q:"ヨーロッパ磁器の先駆けとなった、1709年ドイツで白磁焼成に成功した窯は？",a:"マイセン"},
+  {ch:6,q:"食器の基本的な洗い方は？",a:"陶器と磁器に分け、中性洗剤と柔らかいスポンジでやさしく洗う"},
+  {ch:6,q:"コーヒーに合うクリームの条件3つは？",a:"①風味を損なわない②分散がよい③フェザリングを起こさない"},
+  {ch:6,q:"「フェザリング」とは何か？",a:"熱や酸でクリーム中のタンパク質が凝固し、羽毛状の固まりになること"},
+  {ch:6,q:"コーヒー1杯（ブラック約4kcal）にグラニュー糖6gを加えたカロリーは約何kcalか？",a:"約30kcal"},
+  // ---------- 第7章 ----------
+  {ch:7,q:"コーヒー豆に最も多く含まれる成分は？",a:"炭水化物（繊維質や糖類）",ex:"次にタンパク質・脂質・クロロゲン酸。"},
+  {ch:7,q:"色・味・香りのもとになる、生豆段階から含まれる成分を何というか？",a:"前駆物質（プリカーサー）"},
+  {ch:7,q:"焙煎度を数値化する、黒を0・白を100とした明度の値を何というか？",a:"L値"},
+  {ch:7,q:"L値が大きいほど、焙煎度は浅いか深いか？",a:"浅い",ex:"ローストが深まるほどL値は低くなる。"},
+  {ch:7,q:"アメリカ式8段階で、浅煎りは何ローストから何ローストか？",a:"ライトローストからシナモンロースト"},
+  {ch:7,q:"中煎りは何ローストから何ローストか？",a:"ミディアムローストからハイロースト"},
+  {ch:7,q:"深煎りは何ローストから何ローストか？",a:"シティローストからイタリアンロースト"},
+  {ch:7,q:"「豆は茶褐色に変化、アメリカンタイプの軽い味わい」はどのローストか？",a:"ミディアムロースト"},
+  {ch:7,q:"焙煎で豆が音を立ててはじける現象を何というか？",a:"ハゼ"},
+  {ch:7,q:"最初のハゼ（1ハゼ）が始まるのは、どの焙煎段階か？",a:"シナモンロースト"},
+  {ch:7,q:"熱を伝える3つの伝熱機構は？",a:"伝導熱・輻射（放射）熱・対流熱"},
+  {ch:7,q:"ほとんどの焙煎で、加熱の中心的役割を担う伝熱は？",a:"対流熱"},
+  {ch:7,q:"ドラムの金属板に穴があいているタイプの焙煎機は？",a:"直火式焙煎機"},
+  {ch:7,q:"焙煎により、生豆の水分・重量・体積はそれぞれどう変化するか？",a:"水分＝減少／重量＝減少／体積＝増加"},
+  {ch:7,q:"ニュークロップの生豆の水分量はおよそ何%か？",a:"約12〜13%（水洗処理）",ex:"焙煎で約2%まで減少。"},
+  {ch:7,q:"ミディアム焙煎で体積は約何倍になるか？",a:"約1.4倍（約40%増加）",ex:"イタリアンで約70%増加。"},
+  {ch:7,q:"イタリアン焙煎で重量はおよそ何%減少するか？",a:"約18%減少",ex:"ミディアムで約14%減少。"},
+  {ch:7,q:"焙煎によって起こる組織変化（膨化）を何と呼ぶか？",a:"パフィング"},
+  {ch:7,q:"コーヒーの褐色色素のもとになる、2つの前駆物質は？",a:"ショ糖とクロロゲン酸"},
+  {ch:7,q:"焙煎豆の香気成分は、現在およそ何種類確認されているか？",a:"約1000種類"},
+  {ch:7,q:"鼻で感じる「アロマ」に対し、口腔の味も含めたものを何というか？",a:"フレーバー（風味）"},
+  {ch:7,q:"「最もコーヒーらしい香り」とされる香気成分は？",a:"フルフリルチオール（フルフリルメルカプタン）"},
+  {ch:7,q:"焙煎で酸度が変化するのは、主に何が熱分解して有機酸を生成するためか？",a:"ショ糖"},
+  {ch:7,q:"アラビカ種とカネフォラ種で、酸味が強いのはどちらか？",a:"アラビカ種"},
+  {ch:7,q:"生豆でカフェイン含有比率が高いのは、アラビカ種かカネフォラ種か？",a:"カネフォラ種",ex:"約2.0%（アラビカは約1.3%）。"},
+  {ch:7,q:"コーヒー全体の苦味のうち、カフェインによるものは約何%か？",a:"約10〜30%"},
+  {ch:7,q:"カフェインとクロロゲン酸では、生豆に多く含まれるのはどちらか？",a:"クロロゲン酸"},
+  {ch:7,q:"コーヒーの薬理作用の多くは、何によるものか？",a:"カフェイン",ex:"アデノシン受容体に作用する。"},
+  {ch:7,q:"カフェインの急性作用を1つ挙げよ。",a:"覚醒作用／中枢興奮作用／骨格筋運動亢進作用（いずれか）"},
+  {ch:7,q:"「妊産婦も1日2〜3杯（カフェイン200〜300mg）以内なら飲まない場合とほぼ差がない」は正しいか？",a:"正しい"},
+  {ch:7,q:"コーヒーの慢性作用で、発症リスクが低下するとされる病気を1つ挙げよ。",a:"肝がん（糖尿病・パーキンソン病・子宮体がんなども）"},
+  {ch:7,q:"コーヒーカップ1杯（150ml）あたりのカフェイン量は、平均約何mgか？",a:"約100mg（50〜120mg）"},
+];
+
+/* ============== 状態管理 ============== */
+const KEY="cm_quiz_state_v1";
+const IV=[0,1,2,4,8,16,30]; // box番号→次回までの日数
+const MASTER_BOX=5;
+function today(){const n=new Date();return Math.floor((n.getTime()-n.getTimezoneOffset()*60000)/86400000);}
+function load(){
+  let s;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){s=null;}
+  if(!s||s.v!==1) s={v:1,limit:10,streak:0,lastDay:null,cards:{},log:{}};
+  return s;
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+let state=load();
+QUESTIONS.forEach((q,i)=>q.id="q"+i); // 安定ID
+
+/* ============== 画面遷移 ============== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ============== セッション ============== */
+let sess=null; // {queue:[ids], i, ok, ng, mode}
+function dueCards(){return QUESTIONS.filter(q=>state.cards[q.id]&&state.cards[q.id].due<=today());}
+function newCards(){return QUESTIONS.filter(q=>!state.cards[q.id]);}
+
+function buildDaily(){
+  const due=dueCards().sort((a,b)=>state.cards[a.id].due-state.cards[b.id].due);
+  const fresh=newCards();
+  const limit=state.limit;
+  let queue=due.slice(0,limit);
+  if(queue.length<limit) queue=queue.concat(fresh.slice(0,limit-queue.length));
+  return queue.map(q=>q.id);
+}
+function startDaily(){
+  const queue=buildDaily();
+  if(queue.length===0){ show('result'); showEmptyResult(); return; }
+  sess={queue,i:0,ok:0,ng:0,mode:'今日の演習'};
+  renderQ();
+}
+function startWeak(){
+  const weak=QUESTIONS.filter(q=>state.cards[q.id]&&state.cards[q.id].box<=2);
+  if(weak.length===0){ alert('弱点はありません。まず演習で×を付けた問題がここに集まります。'); return; }
+  shuffle(weak);
+  sess={queue:weak.map(q=>q.id),i:0,ok:0,ng:0,mode:'弱点復習'};
+  renderQ();
+}
+function startChapter(ch){
+  const pool=QUESTIONS.filter(q=>q.ch===ch);
+  shuffle(pool);
+  sess={queue:pool.map(q=>q.id),i:0,ok:0,ng:0,mode:'第'+ch+'章'};
+  renderQ();
+}
+function renderQ(){
+  show('session');
+  const id=sess.queue[sess.i];
+  const q=QUESTIONS.find(x=>x.id===id);
+  document.getElementById('sess-mode').textContent=sess.mode;
+  document.getElementById('q-i').textContent=sess.i+1;
+  document.getElementById('q-n').textContent=sess.queue.length;
+  document.getElementById('q-prog').style.width=(sess.i/sess.queue.length*100)+'%';
+  document.getElementById('q-ch').textContent='第'+q.ch+'章 '+CH_NAMES[q.ch];
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-a').textContent=q.a;
+  document.getElementById('q-ex').textContent=q.ex||'';
+  document.getElementById('q-ex').style.display=q.ex?'block':'none';
+  document.getElementById('q-ans').classList.remove('show');
+  document.getElementById('reveal-btn').style.display='block';
+  document.getElementById('grade').style.display='none';
+  document.getElementById('kbd-hint').textContent = isDesktop()?'スペース=答え／1=✕／2=○':'';
+}
+function reveal(){
+  document.getElementById('q-ans').classList.add('show');
+  document.getElementById('reveal-btn').style.display='none';
+  document.getElementById('grade').style.display='flex';
+}
+function grade(ok){
+  const id=sess.queue[sess.i];
+  let c=state.cards[id]||{box:0,due:today()};
+  if(ok){ c.box=Math.min(c.box+1,6); c.due=today()+IV[c.box]; sess.ok++; }
+  else  { c.box=1; c.due=today()+1; sess.ng++; }
+  state.cards[id]=c;
+  save();
+  sess.i++;
+  if(sess.i>=sess.queue.length){ finishSession(); }
+  else renderQ();
+}
+function finishSession(){
+  const d=today();
+  if(!state.log[d]) state.log[d]={studied:0,ok:0,ng:0};
+  state.log[d].studied+=sess.queue.length; state.log[d].ok+=sess.ok; state.log[d].ng+=sess.ng;
+  // 連続日数
+  if(state.lastDay!==d){
+    if(state.lastDay===d-1) state.streak++; else state.streak=1;
+    state.lastDay=d;
+  }
+  save();
+  // 結果画面
+  document.getElementById('r-total').textContent=sess.queue.length;
+  document.getElementById('r-ok').textContent=sess.ok;
+  document.getElementById('r-ng').textContent=sess.ng;
+  const rate=sess.ok/sess.queue.length;
+  document.getElementById('r-emoji').textContent= rate>=0.9?'🏆': rate>=0.6?'🎉':'💪';
+  document.getElementById('r-title').textContent= rate>=0.9?'素晴らしい！':'おつかれさまでした';
+  document.getElementById('r-msg').textContent= sess.ng>0? '✕の'+sess.ng+'問は「弱点だけ復習」と翌日以降の演習で自動的に出てきます。':'全問○！この調子です。';
+  const more=dueCards().length>0||newCards().length>0;
+  document.getElementById('r-again').style.display= (sess.mode==='今日の演習'&&more)?'block':'none';
+  show('result');
+}
+function showEmptyResult(){
+  document.getElementById('r-emoji').textContent='✅';
+  document.getElementById('r-title').textContent='今日のノルマ完了！';
+  document.getElementById('r-total').textContent='0';
+  document.getElementById('r-ok').textContent='0';
+  document.getElementById('r-ng').textContent='0';
+  document.getElementById('r-msg').textContent='今日復習すべき問題はありません。明日また続けましょう。章別演習で先取りもできます。';
+  document.getElementById('r-again').style.display='none';
+}
+function quitSession(){ if(confirm('演習を中断しますか？（ここまでの記録は保存済み）')){ show('home'); refreshHome(); } }
+
+/* ============== ホーム更新 ============== */
+function refreshHome(){
+  state=load();
+  const due=dueCards().length, fresh=newCards().length;
+  const limit=state.limit;
+  let plan=Math.min(due,limit); if(plan<limit) plan+=Math.min(fresh,limit-plan);
+  document.getElementById('due-count').textContent=plan;
+  document.getElementById('due-meta').textContent='復習 '+Math.min(due,limit)+' ・ 新規 '+Math.max(0,plan-Math.min(due,limit));
+  document.getElementById('p-streak').textContent=state.streak;
+  const d=today();
+  document.getElementById('p-today').textContent=(state.log[d]?state.log[d].studied:0);
+  // 全体マスター
+  const total=QUESTIONS.length;
+  const mastered=QUESTIONS.filter(q=>state.cards[q.id]&&state.cards[q.id].box>=MASTER_BOX).length;
+  document.getElementById('mastered-n').textContent=mastered;
+  document.getElementById('total-n').textContent=total;
+  const pct=total?Math.round(mastered/total*100):0;
+  document.getElementById('mastered-pct').textContent=pct+'%';
+  document.getElementById('mastered-bar').style.width=pct+'%';
+  // 章別バー
+  const wrap=document.getElementById('chapter-bars'); wrap.innerHTML='';
+  Object.keys(CH_NAMES).forEach(ch=>{
+    const qs=QUESTIONS.filter(q=>q.ch==ch); if(!qs.length) return;
+    const m=qs.filter(q=>state.cards[q.id]&&state.cards[q.id].box>=MASTER_BOX).length;
+    const p=Math.round(m/qs.length*100);
+    const el=document.createElement('div'); el.className='barwrap';
+    el.innerHTML='<div class="barlabel"><span>第'+ch+'章 '+CH_NAMES[ch]+'</span><span>'+m+'/'+qs.length+'</span></div><div class="bar"><i style="width:'+p+'%"></i></div>';
+    wrap.appendChild(el);
+  });
+  const covered=[...new Set(QUESTIONS.map(q=>q.ch))].sort((a,b)=>a-b);
+  const remain=Object.keys(CH_NAMES).map(Number).filter(c=>!covered.includes(c));
+  document.getElementById('foot').textContent='収録 '+total+'問（第'+covered.join('・')+'章）'+(remain.length?'｜第'+remain.join('・')+'章を順次追加予定':'｜全7章収録');
+}
+
+/* ============== 章別画面 ============== */
+function renderChapters(){
+  const list=document.getElementById('ch-list'); list.innerHTML='';
+  Object.keys(CH_NAMES).forEach(ch=>{
+    const qs=QUESTIONS.filter(q=>q.ch==ch);
+    const m=qs.filter(q=>state.cards[q.id]&&state.cards[q.id].box>=MASTER_BOX).length;
+    const row=document.createElement('div'); row.className='chrow';
+    const has=qs.length>0;
+    row.innerHTML='<div class="cn">'+ch+'</div><div class="ct"><div class="t">'+CH_NAMES[ch]+'</div><div class="s">'+(has?qs.length+'問':'準備中（追加予定）')+'</div></div><div class="cg">'+(has?m+'/'+qs.length+' マスター':'—')+'</div>';
+    if(has) row.onclick=()=>startChapter(parseInt(ch));
+    else row.style.opacity=.5;
+    list.appendChild(row);
+  });
+}
+
+/* ============== 設定 ============== */
+function changeLimit(d){ state.limit=Math.max(5,Math.min(50,state.limit+d)); document.getElementById('limit-val').textContent=state.limit; save(); }
+function resetAll(){ if(confirm('進捗・連続日数・弱点記録をすべて消去します。よろしいですか？')){ localStorage.removeItem(KEY); state=load(); refreshHome(); show('home'); alert('リセットしました。'); } }
+
+/* ============== util ============== */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+function isDesktop(){ return !('ontouchstart' in window) && window.innerWidth>700; }
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('session').classList.contains('active')) return;
+  const revealed=document.getElementById('q-ans').classList.contains('show');
+  if((e.key===' '||e.key==='Enter')&&!revealed){ e.preventDefault(); reveal(); }
+  else if(revealed&&(e.key==='1')){ grade(false); }
+  else if(revealed&&(e.key==='2')){ grade(true); }
+});
+
+/* ============== init ============== */
+function initSettings(){ document.getElementById('limit-val').textContent=state.limit;
+  let bi='全'+QUESTIONS.length+'問 ／ ';
+  Object.keys(CH_NAMES).forEach(c=>{const n=QUESTIONS.filter(q=>q.ch==c).length; if(n)bi+='第'+c+'章 '+n+'問・';});
+  document.getElementById('bank-info').textContent=bi.replace(/・$/,'。'); }
+// 画面を開くたびに再描画
+const _show=show;
+show=function(id){ _show(id); if(id==='home')refreshHome(); if(id==='chapters')renderChapters(); if(id==='settings')initSettings(); };
+refreshHome();
+</script>
+</body>
+</html>
