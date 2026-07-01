@@ -1032,8 +1032,14 @@ function initSettings(){ document.getElementById('limit-val').textContent=state.
 const _show=show;
 show=function(id){ _show(id); if(id==='home')refreshHome(); if(id==='chapters')renderChapters(); if(id==='exercise')renderExercise(); if(id==='settings')initSettings(); };
 refreshHome();
-// オフライン対応（Service Worker登録）
-if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+// オフライン対応（Service Worker登録＋更新時に自動リロード）
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  var _cmReloading=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(_cmReloading) return; _cmReloading=true; location.reload();
+  });
+}
 </script>
 </body>
 </html>
