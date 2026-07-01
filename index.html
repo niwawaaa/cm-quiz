@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#4a2c1a">
 <meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
 <title>☕ コーヒーマイスター 一問一答</title>
 <style>
   :root{
@@ -917,6 +918,8 @@ function initSettings(){ document.getElementById('limit-val').textContent=state.
 const _show=show;
 show=function(id){ _show(id); if(id==='home')refreshHome(); if(id==='chapters')renderChapters(); if(id==='exercise')renderExercise(); if(id==='settings')initSettings(); };
 refreshHome();
+// オフライン対応（Service Worker登録）
+if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 </script>
 </body>
 </html>
