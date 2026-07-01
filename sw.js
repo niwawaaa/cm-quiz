@@ -1,5 +1,5 @@
-// コーヒーマイスター一問一答 Service Worker（オフライン対応）
-const CACHE = 'cmq-v1';
+// コーヒーマイスター一問一答 Service Worker（オフライン対応・ネット優先）
+const CACHE = 'cmq-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
@@ -16,16 +16,16 @@ self.addEventListener('activate', e => {
   );
 });
 
-// キャッシュ優先（オフラインでも動く）＋オンライン時は取得結果を更新
+// ネット優先：オンラインなら常に最新を取得＆キャッシュ更新／オフライン時はキャッシュから
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then(cached =>
-      cached || fetch(e.request).then(resp => {
-        const copy = resp.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
-        return resp;
-      }).catch(() => caches.match('./index.html'))
+    fetch(e.request).then(resp => {
+      const copy = resp.clone();
+      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+      return resp;
+    }).catch(() =>
+      caches.match(e.request).then(r => r || caches.match('./index.html'))
     )
   );
 });
